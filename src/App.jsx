@@ -19,6 +19,9 @@ const mediaMap = {
   "v.daum.net": "다음 뉴스",
 };
 
+// ✅ Render 배포된 백엔드 URL (프록시)
+const BASE_URL = "https://news-proxy-aukx.onrender.com";
+
 // 시간 표시 함수
 function timeAgo(dateString) {
   const now = new Date();
@@ -35,7 +38,9 @@ function timeAgo(dateString) {
 // ✅ 구글 뉴스 (프록시 통해 XML 파싱, 최대 100개 확보)
 async function fetchGoogleNews(keyword) {
   try {
-    const response = await fetch(`/google-news?q=${encodeURIComponent(keyword)}`);
+    const response = await fetch(
+      `${BASE_URL}/google-news?q=${encodeURIComponent(keyword)}`
+    );
     const text = await response.text();
     const parser = new DOMParser();
     const xml = parser.parseFromString(text, "application/xml");
@@ -64,11 +69,13 @@ async function fetchGoogleNews(keyword) {
 
 // ✅ 네이버 뉴스 (프록시 사용, 최대 100개 확보)
 async function fetchNaverNews(keyword) {
-  const apiUrl = `/app-news/server?q=${encodeURIComponent(keyword)}&display=100`;
   try {
-    const response = await fetch(apiUrl);
+    const response = await fetch(
+      `${BASE_URL}/app-news/server?q=${encodeURIComponent(keyword)}&display=100`
+    );
     const data = await response.json();
     let items = data.items || [];
+
     return items.map((item) => {
       let source = "네이버뉴스";
       if (item.originallink) {
@@ -111,7 +118,6 @@ function NewsBox({ side, query, setQuery }) {
     ]);
 
     let allNews = [...googleNews, ...naverNews];
-
     const keyword = query.toLowerCase();
 
     const titleMatches = allNews
